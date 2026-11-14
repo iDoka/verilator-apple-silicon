@@ -323,6 +323,16 @@ cluster can have better performance than spreading across multiple L3
 clusters using physical cores only. Experimentation is recommended to find
 the best settings for underlying hardware and model characteristics.
 
+On systems with both performance and efficiency cores (e.g., Apple
+silicon), the thread count should not exceed the number of performance
+cores. The threads synchronize on every evaluation, so a single thread on a
+slower efficiency core paces the whole model, and the model may run slower
+than with a single thread. A thread count one less than the number of
+performance cores often runs fastest, as it leaves a performance core for
+the rest of the system. On macOS, :command:`sysctl -n
+hw.perflevel0.logicalcpu` reports the number of performance cores, and the
+Verilated model warns at runtime if the thread count exceeds it.
+
 Multithreaded Verilog and Library Support
 -----------------------------------------
 
