@@ -47,6 +47,7 @@
 
 #if defined(__APPLE__) && defined(__MACH__)
 # include <mach/mach.h>  // For task_info()
+# include <sys/sysctl.h>  // For sysctlbyname()
 #endif
 // clang-format on
 
@@ -132,6 +133,24 @@ unsigned getProcessAvailableParallelism() VL_MT_SAFE {
     }
 #endif
     // Cannot determine
+    return 0;
+}
+
+//=============================================================================
+// Vlos::getPerformanceParallelism implementation
+
+unsigned getPerformanceParallelism() VL_MT_SAFE {
+#if defined(__APPLE__) && defined(__MACH__)
+    // Apple silicon has performance and efficiency cores; perflevel0 is the fastest
+    int levels = 0;
+    size_t size = sizeof(levels);
+    if (sysctlbyname("hw.nperflevels", &levels, &size, nullptr, 0) == 0 && levels > 1) {
+        int nCpus = 0;
+        size = sizeof(nCpus);
+        if (sysctlbyname("hw.perflevel0.logicalcpu", &nCpus, &size, nullptr, 0) == 0) return nCpus;
+    }
+#endif
+    // Cannot determine, or all processors are alike
     return 0;
 }
 

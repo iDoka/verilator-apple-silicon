@@ -3467,6 +3467,17 @@ static void warnThreadsOversubscribed(unsigned threads) VL_MT_SAFE {
     }
 }
 
+static void warnThreadsEfficiencyCores(unsigned threads) VL_MT_SAFE {
+    // The static schedule waits for every thread, so the slowest core sets the pace
+    const unsigned performanceThreads = VlOs::getPerformanceParallelism();
+    if (performanceThreads && threads > performanceThreads) {
+        VL_PRINTF_MT("%%Warning: Process has %u performance core hardware threads, but model "
+                     "was Verilated with --threads %u. Threads on efficiency cores will likely "
+                     "cause significant slowdown.\n",
+                     performanceThreads, threads);
+    }
+}
+
 void VerilatedContext::threads(unsigned n) {
     if (n == 0) VL_FATAL_MT(__FILE__, __LINE__, "", "Simulation threads must be >= 1");
 
@@ -3544,6 +3555,7 @@ void VerilatedContext::addModel(VerilatedModel* modelp) {
         const std::string str = msg.str();
         VL_FATAL_MT(__FILE__, __LINE__, modelp->hierName(), str.c_str());
     }
+    warnThreadsEfficiencyCores(modelp->threads());
 
     // Record the model under its hierarchical path
     {

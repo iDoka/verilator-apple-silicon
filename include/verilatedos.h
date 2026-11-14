@@ -715,6 +715,11 @@ extern unsigned getProcessAvailableParallelism() VL_MT_SAFE;
 /// hardware threads in the host machine.
 extern unsigned getProcessDefaultParallelism() VL_MT_SAFE;
 
+/// Return number of hardware threads on the fastest cores of a machine with
+/// both performance and efficiency cores. Returns 0 if cannot be determined,
+/// or if all cores are alike.
+extern unsigned getPerformanceParallelism() VL_MT_SAFE;
+
 /// Return memory usage in bytes, or 0 if unknown
 extern void memUsageBytes(uint64_t& peakr, uint64_t& currentr) VL_MT_SAFE;
 
