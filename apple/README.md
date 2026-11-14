@@ -72,6 +72,26 @@ apple/tools/batch_run.py --runs 1000 --pass-regex TEST_PASSED --link program.hex
 в ветке `apple-gpu`). Логирование стоит почти втрое больше, чем дают все остальные рецепты вместе.
 Для регрессии отключайте трассы и пишите их только для упавших сидов: перезапуском с тем же сидом.
 
+## Сборка Verilator из этой ветки
+
+```bash
+autoconf && ./configure --prefix=$HOME/opt/verilator-apple-m4
+make -j6 && make install
+cp apple/tools/pgo_build.py $HOME/opt/verilator-apple-m4/bin/verilator_pgo_build
+cp apple/tools/batch_run.py $HOME/opt/verilator-apple-m4/bin/verilator_batch_run
+export PATH=$HOME/opt/verilator-apple-m4/bin:$PATH
+```
+
+Отличия от upstream в собранном Verilator:
+
+- модели на Apple silicon по умолчанию собираются с `-O2` (`OPT_FAST`, `OPT_GLOBAL`) вместо `-Os`;
+  переопределяется как обычно: `make OPT_FAST=-Os`;
+- при запуске модели с `--threads` больше числа P-ядер печатается предупреждение.
+
+Число потоков и PGO зависят от дизайна и задачи, поэтому их задают рецепты выше, а не сборка. Без
+`help2man` (`brew install help2man`) `make` не соберёт man-страницы `verilator_gantt` и
+`verilator_profcfunc`; на сам Verilator это не влияет.
+
 ## Ловушки
 
 - **Фоновые задачи launchd в 6 раз медленнее.** Процесс с `ProcessType=Background` (или запущенный
@@ -88,6 +108,7 @@ apple/tools/batch_run.py --runs 1000 --pass-regex TEST_PASSED --link program.hex
 
 | Где | Что |
 |---|---|
+| `include/verilated.mk.in` | `-O2` по умолчанию на Apple silicon |
 | `include/verilated.cpp`, `include/verilatedos*.h` | предупреждение «`--threads` больше числа P-ядер» (upstream-кандидат) |
 | `docs/guide/verilating.rst`, `docs/guide/simulating.rst` | рекомендации по гибридным CPU и исправленный рецепт Clang PGO (upstream-кандидаты) |
 | `apple/tools/pgo_build.py` | сборка модели с компиляторным PGO |
