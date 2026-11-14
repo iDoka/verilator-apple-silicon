@@ -20,7 +20,8 @@ start=$(date +%s)
 xcrun metal -O2 -c sim.metal -o sim.air
 xcrun metallib sim.air -o sim.metallib
 echo "metal: $(( $(date +%s) - start )) s"
-OBJS=$(ls "$OBJ"/*.o | grep -v test_tb_top.o)
+# The model and the runtime; not the testbench main
+OBJS=$(ls "$OBJ"/*.o | grep -E "/($PREFIX|verilated)[^/]*\.o$")
 clang++ -O2 -std=c++20 -fobjc-arc -DVL_TIME_CONTEXT -I"$OBJ" -I"$OUT" -I"$ROOT/include" -I"$ROOT/include/vltstd" \
     "$HERE/host.mm" $OBJS -framework Metal -framework Foundation -o host
 echo "built $OUT/host"

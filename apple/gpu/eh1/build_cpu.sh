@@ -1,12 +1,14 @@
 #!/bin/bash
 # Build the VeeR EH1 CoreMark model with the GPU testbench variant (make_tb.py), for the CPU.
 # Usage: build_cpu.sh <variant-name> "<extra verilator flags>" "<OPT_FAST and OPT_GLOBAL>"
+#        ["<make_tb.py options>"]
 # Output: apple/gpu/work/eh1/<variant-name>/obj_dir; Verilator output there is also the
 # input of the Metal translator.
 set -euo pipefail
 NAME=$1
 VFLAGS=${2:-}
 OPT=${3:--O2}
+TB_OPTS=${4:-}
 ROOT=$(cd "$(dirname "$0")/../../.." && pwd)
 export VERILATOR_ROOT=$ROOT
 export RV_ROOT=$ROOT/verilator_ext_tests/submodules/Cores-VeeR-EH1
@@ -15,7 +17,8 @@ WORK=$ROOT/apple/gpu/work/eh1/$NAME
 rm -rf "$WORK"
 mkdir -p "$WORK"
 cp -r "$SRC/snapshots" "$SRC/program.hex" "$WORK/"
-python3 "$ROOT/apple/gpu/eh1/make_tb.py" "$WORK/tb"
+# shellcheck disable=SC2086
+python3 "$ROOT/apple/gpu/eh1/make_tb.py" "$WORK/tb" $TB_OPTS
 cd "$WORK"
 # shellcheck disable=SC2086
 "$ROOT/bin/verilator" --cc -CFLAGS -std=c++20 \

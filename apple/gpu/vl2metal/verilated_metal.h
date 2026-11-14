@@ -288,3 +288,71 @@ inline void VL_MULS_WWW(int lbits, device O& o, L l, R r) {
     vl_muls_www(lbits, t.m_storage, l.m_storage, r.m_storage);
     o = t;
 }
+
+//======================================================================
+// Random numbers: port of VlRNG (xoroshiro128**, include/verilated.cpp). The CPU model draws
+// from a thread-local generator; on the GPU each instance has its own state in the members
+// __Vgpu_rng0/1, which vl2metal passes as the first two arguments (VL_GPU_RNG).
+
+#define VL_GPU_RNG vlSelf->__Vgpu_rng0[L], vlSelf->__Vgpu_rng1[L]
+#define VL_RNG_PARAMS device QData &s0r, device QData &s1r
+
+inline QData vl_rolt(QData x, int k) { return (x << k) | (x >> (64 - k)); }
+
+inline QData vl_rand64(VL_RNG_PARAMS) {
+    const QData s0 = s0r;
+    const QData s1 = s1r ^ s0;
+    s0r = vl_rolt(s0, 24) ^ s1 ^ (s1 << 16);
+    s1r = vl_rolt(s1, 37);
+    return vl_rolt(s0 * 5, 7) * 9;
+}
+
+inline QData vl_splitmix64(thread QData& x) {
+    QData z = (x += 0x9e3779b97f4a7c15UL);
+    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9UL;
+    z = (z ^ (z >> 27)) * 0x94d049bb133111ebUL;
+    return z ^ (z >> 31);
+}
+
+// VerilatedContext::randSeed(seed) then reseeding the thread generator. A seed of 0 picks a
+// time-based seed on the CPU, which cannot be reproduced; the GPU uses 0.
+inline void vl_rng_reseed(VL_RNG_PARAMS, IData seed) {
+    const QData s = static_cast<QData>(static_cast<long>(static_cast<int>(seed)));
+    QData x = (s << 32) ^ s;
+    s0r = vl_splitmix64(x);
+    s1r = vl_splitmix64(x);
+}
+
+inline IData VL_RANDOM_I(VL_RNG_PARAMS) { return static_cast<IData>(vl_rand64(s0r, s1r)); }
+inline QData VL_RANDOM_Q(VL_RNG_PARAMS) { return vl_rand64(s0r, s1r); }
+template <class O>
+inline void VL_RANDOM_W(VL_RNG_PARAMS, int obits, thread O& o) {
+    for (int i = 0; i < VL_WORDS_I(obits); ++i) o[i] = static_cast<EData>(vl_rand64(s0r, s1r));
+}
+template <class O>
+inline void VL_RANDOM_W(VL_RNG_PARAMS, int obits, device O& o) {
+    for (int i = 0; i < VL_WORDS_I(obits); ++i) o[i] = static_cast<EData>(vl_rand64(s0r, s1r));
+}
+inline IData VL_RANDOM_SEEDED_II(VL_RNG_PARAMS, device IData& seedr) {
+    vl_rng_reseed(s0r, s1r, seedr);
+    seedr = VL_RANDOM_I(s0r, s1r);
+    return VL_RANDOM_I(s0r, s1r);
+}
+inline IData VL_RANDOM_SEEDED_II(VL_RNG_PARAMS, thread IData& seedr) {
+    vl_rng_reseed(s0r, s1r, seedr);
+    seedr = VL_RANDOM_I(s0r, s1r);
+    return VL_RANDOM_I(s0r, s1r);
+}
+inline IData VL_URANDOM_SEEDED_II(VL_RNG_PARAMS, IData seed) {
+    vl_rng_reseed(s0r, s1r, seed);
+    return VL_RANDOM_I(s0r, s1r);
+}
+inline IData VL_URANDOM_RANGE_I(VL_RNG_PARAMS, IData hi, IData lo) {
+    const QData rnd = vl_rand64(s0r, s1r);
+    if (hi > lo) {
+        if (hi - lo + 1 == 0) return rnd;
+        return (rnd % (hi - lo + 1)) + lo;
+    }
+    if (lo - hi + 1 == 0) return rnd;
+    return (rnd % (lo - hi + 1)) + hi;
+}
