@@ -695,11 +695,12 @@ Clang. The process in GCC 10 was as follows:
    Or, if calling make yourself, add -fprofile-generate appropriately to
    your Makefile.
 
-#. Run your simulation. This will create \*.gcda file(s) in the same
-   directory as the source files.
+#. Run your simulation. With GCC, this will create \*.gcda file(s) in the
+   same directory as the source files. With Clang, this will create
+   \*.profraw file(s) in the current directory.
 
 #. Recompile the model with -fprofile-use. The compiler will read the
-   \*.gcda file(s).
+   profiling data.
 
    For GCC:
 
@@ -708,13 +709,15 @@ Clang. The process in GCC 10 was as follows:
       verilator [whatever_flags] --build \
           -CFLAGS "-fprofile-use -fprofile-correction"
 
-   For Clang:
+   For Clang, first merge the profiling data, then pass its absolute path,
+   as the compiler runs in the Verilator output directory. On macOS, run
+   llvm-profdata as "xcrun llvm-profdata".
 
    .. code-block:: bash
 
       llvm-profdata merge -output default.profdata *.profraw
       verilator [whatever_flags] --build \
-          -CFLAGS "-fprofile-use -fprofile-correction"
+          -CFLAGS "-fprofile-use=$PWD/default.profdata"
 
    or, if calling make yourself, add these CFLAGS switches appropriately to
    your Makefile.
