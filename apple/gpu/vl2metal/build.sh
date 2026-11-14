@@ -1,6 +1,6 @@
 #!/bin/bash
 # Translate a Verilated model with vl2metal.py, compile the Metal library and the host.
-# Usage: build.sh <obj_dir> <prefix> <clock> <status member> <out_dir>
+# Usage: build.sh <obj_dir> <prefix> <clock> <status member> <out_dir> [vl2metal options]
 # The obj_dir must be built for the CPU first (its objects are linked into the host).
 set -euo pipefail
 OBJ=$(cd "$1" && pwd)
@@ -8,11 +8,12 @@ PREFIX=$2
 CLOCK=$3
 STATUS=$4
 OUT=$5
+shift 5
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../.." && pwd)
 mkdir -p "$OUT"
 OUT=$(cd "$OUT" && pwd)
-python3 "$HERE/vl2metal.py" "$OBJ" "$PREFIX" "$OUT" --clock "$CLOCK" --status "$STATUS"
+python3 "$HERE/vl2metal.py" "$OBJ" "$PREFIX" "$OUT" --clock "$CLOCK" --status "$STATUS" "$@"
 cp "$HERE/verilated_metal.h" "$OUT/"
 cd "$OUT"
 start=$(date +%s)

@@ -301,6 +301,8 @@ def main() -> None:
     parser.add_argument("--clock", default="clk", help="clock input, toggled before each eval")
     parser.add_argument("--status", required=True,
                         help="member holding the test result, returned by vl2metal_status()")
+    parser.add_argument("--noinline", action="store_true",
+                        help="do not inline the model's per-cycle functions into the kernel")
     args = parser.parse_args()
     prefix = args.prefix
     lanes = args.lanes
@@ -319,6 +321,9 @@ def main() -> None:
     protos, bodies = [], []
     for name in sorted(names):
         sig, body = translate_function(*funcs[name], prefix, members, skipped)
+        if args.noinline and re.search(r"___(nba|eval_body)", name):
+            # Keeps the Metal backend from compiling the whole model as one function
+            sig = "__attribute__((noinline)) " + sig
         protos.append(sig + ";")
         bodies.append(sig + " {\n" + body + "\n}\n")
     code = "\n".join(bodies)
