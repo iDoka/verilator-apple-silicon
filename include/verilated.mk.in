@@ -169,6 +169,11 @@ OPT_FAST = -Os
 # files in the run-time library. Normally there should be no need for the user
 # to change this as the library is small, but can have significant speed impact.
 OPT_GLOBAL = -Os
+# Apple silicon: -O2 is faster than -Os, more so with compiler PGO (apple/BENCHMARKS.md)
+ifeq ($(shell uname -sm),Darwin arm64)
+  OPT_FAST = -O2
+  OPT_GLOBAL = -O2
+endif
 
 # Disable optimization when collecing code coverage for Verilator itself
 ifeq ($(CFG_WITH_DEV_GCOV),yes)
