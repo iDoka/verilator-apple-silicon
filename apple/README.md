@@ -75,11 +75,11 @@ apple/tools/batch_run.py --runs 1000 --pass-regex TEST_PASSED --link program.hex
 ## Сборка Verilator из этой ветки
 
 ```bash
-autoconf && ./configure --prefix=$HOME/opt/verilator-apple-m4
+autoconf && ./configure --prefix=$HOME/opt/verilator-apple-cpu
 make -j6 && make install
-cp apple/tools/pgo_build.py $HOME/opt/verilator-apple-m4/bin/verilator_pgo_build
-cp apple/tools/batch_run.py $HOME/opt/verilator-apple-m4/bin/verilator_batch_run
-export PATH=$HOME/opt/verilator-apple-m4/bin:$PATH
+cp apple/tools/pgo_build.py $HOME/opt/verilator-apple-cpu/bin/verilator_pgo_build
+cp apple/tools/batch_run.py $HOME/opt/verilator-apple-cpu/bin/verilator_batch_run
+export PATH=$HOME/opt/verilator-apple-cpu/bin:$PATH
 ```
 
 Отличия от upstream в собранном Verilator:
