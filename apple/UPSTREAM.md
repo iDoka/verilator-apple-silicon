@@ -6,16 +6,16 @@
 Перед отправкой:
 
 1. `git push origin upstream-perf-cores-warning upstream-docs-clang-pgo`.
-2. Создать PR из форка в `verilator/verilator:master`.
-3. Если вы ещё не в `docs/CONTRIBUTORS`, добавьте себя туда сами: агентам этот файл править нельзя,
+1. Создать PR из форка в `verilator/verilator:master`.
+1. Если вы ещё не в `docs/CONTRIBUTORS`, добавьте себя туда сами: агентам этот файл править нельзя,
    а CI (`t_dist_contributors`) требует запись для автора коммита.
-4. Полная регрессия (`make test`) локально не прогонялась: прошли новые и соседние тесты
+1. Полная регрессия (`make test`) локально не прогонялась: прошли новые и соседние тесты
    (`t_threads_*`) и dist-тесты стиля. Её прогонит CI.
 
 Похожие обсуждения: закрытый PR #6839 (affinity и E-ядра на Linux). Дубликатов среди открытых
 issue и PR не нашлось (поиск: «efficiency cores», «performance cores», «profdata»).
 
----
+______________________________________________________________________
 
 ## PR 1: ветка `upstream-perf-cores-warning`
 
@@ -51,7 +51,7 @@ The test skips unless run on a Mac with performance and efficiency cores. Linux 
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
----
+______________________________________________________________________
 
 ## PR 2: ветка `upstream-docs-clang-pgo`
 
