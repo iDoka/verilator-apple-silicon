@@ -75,12 +75,13 @@ apple/tools/batch_run.py --runs 1000 --pass-regex TEST_PASSED --link program.hex
 ## Сборка Verilator из этой ветки
 
 ```bash
-autoconf && ./configure --prefix=$HOME/opt/verilator-apple-m4
-make -j6 && make install
-cp apple/tools/pgo_build.py $HOME/opt/verilator-apple-m4/bin/verilator_pgo_build
-cp apple/tools/batch_run.py $HOME/opt/verilator-apple-m4/bin/verilator_batch_run
-export PATH=$HOME/opt/verilator-apple-m4/bin:$PATH
+apple/install.sh $HOME/opt/verilator-apple-gpu
+export PATH=$HOME/opt/verilator-apple-gpu/bin:$PATH
 ```
+
+Скрипт собирает и устанавливает Verilator и кладёт рядом инструменты: `verilator_pgo_build`,
+`verilator_batch_run`, `verilator_energy` и `verilator_metal_build` (GPU). Как гонять
+регрессию на GPU, описано в [gpu/USAGE.md](gpu/USAGE.md).
 
 Отличия от upstream в собранном Verilator:
 
@@ -111,6 +112,8 @@ export PATH=$HOME/opt/verilator-apple-m4/bin:$PATH
 | `include/verilated.mk.in` | `-O2` по умолчанию на Apple silicon |
 | `include/verilated.cpp`, `include/verilatedos*.h` | предупреждение «`--threads` больше числа P-ядер» (upstream-кандидат) |
 | `docs/guide/verilating.rst`, `docs/guide/simulating.rst` | рекомендации по гибридным CPU и исправленный рецепт Clang PGO (upstream-кандидаты) |
+| `apple/install.sh` | сборка и установка Verilator с инструментами |
+| `apple/gpu/USAGE.md` | инструкция: регрессия по сидам на CPU и GPU |
 | `apple/tools/pgo_build.py` | сборка модели с компиляторным PGO |
 | `apple/tools/batch_run.py` | параллельный запуск регрессии |
 | `apple/bench/`, `apple/micro/` | скрипты замеров и микробенчмарки |
