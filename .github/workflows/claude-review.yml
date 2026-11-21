@@ -53,7 +53,7 @@ jobs:
 
       - name: Claude review
         id: claude
-        uses: anthropics/claude-code-action@61a9c274fa7110a66dfafc1bbbced03833eb25fe  # v1.0.269
+        uses: anthropics/claude-code-action@5a856893345e332afa621934082d8c660c26d689  # v1.0.282
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           allowed_bots: verilator-bot
